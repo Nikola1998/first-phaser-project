@@ -37,6 +37,8 @@ function preload() {
 
 let ground;
 let player;
+let playerTurnedRight = true;
+let cursors;
 
 function create() {
   // WORLD
@@ -66,13 +68,13 @@ function create() {
   this.anims.create({
     key: "idle",
     frames: this.anims.generateFrameNumbers("chap-idle", { start: 0, end: 4 }),
-    frameRate: 3,
+    frameRate: 7,
     repeat: -1,
   });
   this.anims.create({
     key: "run",
     frames: this.anims.generateFrameNumbers("chap-run", { start: 0, end: 7 }),
-    frameRate: 3,
+    frameRate: 10,
     repeat: -1,
   });
   this.anims.create({
@@ -81,7 +83,37 @@ function create() {
     frameRate: 3,
     repeat: 0,
   });
+  this.anims.create({
+    key: "jump",
+    frames: [{ key: "chap-run", frame: 6 }],
+    frameRate: 20,
+  });
   // ANIMATIONS
+
+  // CONTROLS
+  cursors = this.input.keyboard.createCursorKeys();
+  // CONTROLS
 }
 
-function update() {}
+function update() {
+  if (cursors.left.isDown) {
+    player.setVelocityX(-200);
+    player.flipX = true;
+    player.anims.play("run", true);
+  } else if (cursors.right.isDown) {
+    player.setVelocityX(200);
+    player.flipX = false;
+    player.anims.play("run", true);
+  } else {
+    player.setVelocityX(0);
+    player.anims.play("idle", true);
+  }
+
+  if (cursors.up.isDown && player.body.touching.down) {
+    player.setVelocityY(-250);
+  }
+
+  if (!player.body.touching.down) {
+    player.anims.play("jump");
+  }
+}
