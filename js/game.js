@@ -56,6 +56,32 @@ function create() {
     .setScale(0.5)
     .refreshBody();
   player.setCollideWorldBounds(true);
+  // PLAYER
+
+  // PHYSICS
+  this.physics.add.collider(player, ground);
+  // PHYSICS
+
+  // ANIMATIONS
+  this.anims.create({
+    key: "idle",
+    frames: this.anims.generateFrameNumbers("chap-idle", { start: 0, end: 4 }),
+    frameRate: 3,
+    repeat: -1,
+  });
+  this.anims.create({
+    key: "run",
+    frames: this.anims.generateFrameNumbers("chap-run", { start: 0, end: 7 }),
+    frameRate: 3,
+    repeat: -1,
+  });
+  this.anims.create({
+    key: "die",
+    frames: this.anims.generateFrameNumbers("chap-die", { start: 0, end: 4 }),
+    frameRate: 3,
+    repeat: 0,
+  });
+  // ANIMATIONS
 }
 
 function update() {}
