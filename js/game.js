@@ -34,6 +34,9 @@ function preload() {
     frameWidth: 128,
     frameHeight: 128,
   });
+
+  // PARTICLES
+  this.load.image("fire", "assets/fire-particle.png");
 }
 
 let ground;
@@ -43,6 +46,7 @@ let cursors;
 let points;
 let neededScore = 1;
 let currentScore = 0;
+let particles;
 
 function create() {
   // WORLD
@@ -109,8 +113,12 @@ function create() {
   this.physics.add.collider(points, ground);
   this.physics.add.overlap(player, points, collectPoint, null, this);
 
-  spawnPoints(1);
   // POINTS
+
+  // PARTICLES
+  particles = this.add.particles("fire");
+  // PARTICLES
+  spawnPoints(1);
 }
 
 function update() {
@@ -136,8 +144,10 @@ function update() {
   }
 }
 
-function collectPoint(player, star) {
-  star.disableBody(true, true);
+function collectPoint(player, point) {
+  let emitter = point.getData("emitter");
+  emitter.stop();
+  point.destroy();
   currentScore++;
   if (points.countActive(true) === 0) {
     spawnPoints(neededScore);
@@ -153,7 +163,7 @@ function spawnPoints(amount) {
   let y = player.y < 300 ? 520 : 30;
 
   for (let i = 0; i < amount; i++) {
-    let point = points.create(x, y, "point");
+    let point = points.create(x, y, "point").setScale(0.5).refreshBody();
     point.setBounce(1);
     point.setCollideWorldBounds(true);
     point.setVelocity(
@@ -161,5 +171,14 @@ function spawnPoints(amount) {
       Phaser.Math.Between(-200, 200)
     );
     point.body.setGravityY(0);
+
+    let emitter = particles.createEmitter({
+      speed: 20,
+      scale: { start: 0.5, end: 0 },
+      blendMode: "ADD",
+      tint: { start: 0xff945e, end: 0xff945e },
+    });
+    emitter.startFollow(point);
+    point.setData({ emitter: emitter });
   }
 }
