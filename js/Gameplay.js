@@ -1,3 +1,5 @@
+import Points from "./Points.js";
+
 export default class Gameplay extends Phaser.Scene {
   constructor() {
     super("Gameplay");
@@ -8,7 +10,6 @@ export default class Gameplay extends Phaser.Scene {
     this.playerHealthText;
     this.cursors;
     this.points;
-    this.neededScore = 1;
     this.currentScore = 0;
     this.scoreText;
     this.particles;
@@ -149,7 +150,12 @@ export default class Gameplay extends Phaser.Scene {
     // CONTROLS
 
     // POINTS
-    this.points = this.physics.add.group({ allowGravity: false });
+    this.points = new Points(
+      this.physics.world,
+      this,
+      this.player,
+      this.particles
+    );
 
     this.physics.add.collider(this.points, this.ground);
     this.pointCollider = this.physics.add.overlap(
@@ -159,7 +165,7 @@ export default class Gameplay extends Phaser.Scene {
       null,
       this
     );
-    this.spawnPoints(1);
+    this.points.spawnPoints(1);
     // POINTS
 
     // ENEMY
@@ -215,43 +221,11 @@ export default class Gameplay extends Phaser.Scene {
     this.currentScore++;
     this.scoreText.setText("score: " + this.currentScore);
     if (this.points.countActive(true) === 0) {
-      this.spawnPoints(this.neededScore <= 64 ? this.neededScore : 64);
-      this.neededScore *= 2;
+      this.points.spawnPoints(this.currentScore <= 64 ? this.currentScore : 64);
       this.spawnDemon();
       this.sound.play("doing-good");
     }
     this.sound.play("point");
-  }
-
-  spawnPoints(amount) {
-    let y = this.player.y < 300 ? 520 : 30;
-    let x;
-
-    for (let i = 0; i < amount; i++) {
-      x =
-        this.player.x < 400
-          ? Phaser.Math.Between(400, 800)
-          : Phaser.Math.Between(0, 400);
-      let point = this.points.create(x, y, "point").setScale(0.5).refreshBody();
-      point.setBounce(1);
-      point.setCollideWorldBounds(true);
-      point.setVelocity(
-        Phaser.Math.Between(-200, 200),
-        Phaser.Math.Between(-200, 200)
-      );
-      point.body.setGravityY(0);
-
-      let emitter = this.particles.createEmitter({
-        speed: 5,
-        alpha: { start: 1, end: 0 },
-        scale: { start: 0.5, end: 0 },
-        blendMode: "ADD",
-        tint: { start: 0x99e550, end: 0x99e550 },
-        frequency: 110,
-      });
-      emitter.startFollow(point);
-      point.setData({ emitter: emitter });
-    }
   }
 
   spawnDemon() {
