@@ -19,6 +19,7 @@ let config = {
 let game = new Phaser.Game(config);
 
 function preload() {
+  // GRAPHICS
   this.load.image("ground", "assets/ground.png");
   this.load.image("background", "assets/background.png");
   this.load.image("point", "assets/point.png");
@@ -39,6 +40,16 @@ function preload() {
   // PARTICLES
   this.load.image("fire", "assets/fire-particle.png");
   this.load.image("demon-particle", "assets/demon-particle.png");
+
+  // SOUND
+  this.load.audio("jump", "assets/sounds/jump.mp3");
+  this.load.audio("point", "assets/sounds/point.mp3");
+  this.load.audio("death", "assets/sounds/death.mp3");
+  this.load.audio("start", "assets/sounds/start.mp3");
+  this.load.audio("theme", "assets/sounds/theme.mp3");
+  this.load.audio("hit", "assets/sounds/hit.mp3");
+  this.load.audio("doing-good", "assets/sounds/doing-good.mp3");
+  this.load.audio("end-game", "assets/sounds/end-game.mp3");
 }
 
 let ground;
@@ -170,6 +181,11 @@ function create() {
     this
   );
   // ENEMY
+
+  // MUSIC
+  this.sound.play("theme", { loop: true });
+  this.sound.play("start");
+  // MUSIC
 }
 
 function update() {
@@ -189,6 +205,7 @@ function update() {
 
     if (cursors.up.isDown && player.body.touching.down) {
       player.setVelocityY(-470);
+      this.sound.play("jump");
     }
 
     if (!player.body.touching.down) {
@@ -207,7 +224,9 @@ function collectPoint(player, point) {
     spawnPoints(neededScore <= 64 ? neededScore : 64);
     neededScore *= 2;
     spawnDemon();
+    this.sound.play("doing-good");
   }
+  this.sound.play("point");
 }
 
 function spawnPoints(amount) {
@@ -275,7 +294,13 @@ function damagePlayer(player, demon) {
   let emitter = demon.getData("emitter");
   emitter.stop();
   demon.destroy();
+  if (playerHealth > 0) {
+    this.sound.play("hit");
+  }
   if (playerHealth === 0) {
+    this.sound.stopAll();
+    this.sound.play("death");
+    this.sound.play("end-game");
     playerDeath();
   }
 }
