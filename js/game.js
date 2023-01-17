@@ -54,6 +54,8 @@ let particles;
 let demons;
 let demonParticles;
 let gameOver = false;
+let enemyCollider;
+let pointCollider;
 
 function create() {
   // WORLD
@@ -147,14 +149,26 @@ function create() {
   points = this.physics.add.group({ allowGravity: false });
 
   this.physics.add.collider(points, ground);
-  this.physics.add.overlap(player, points, collectPoint, null, this);
+  pointCollider = this.physics.add.overlap(
+    player,
+    points,
+    collectPoint,
+    null,
+    this
+  );
   spawnPoints(1);
   // POINTS
 
   // ENEMY
   demons = this.physics.add.group({ allowGravity: false });
   this.physics.add.collider(demons, ground);
-  this.physics.add.overlap(player, demons, damagePlayer, null, this);
+  enemyCollider = this.physics.add.overlap(
+    player,
+    demons,
+    damagePlayer,
+    null,
+    this
+  );
   // ENEMY
 }
 
@@ -271,4 +285,6 @@ function playerDeath() {
   player.setTint(0xff0000);
   player.setVelocityX(0);
   player.anims.play("die");
+  pointCollider.destroy();
+  enemyCollider.destroy();
 }
