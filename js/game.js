@@ -41,12 +41,15 @@ function preload() {
 
 let ground;
 let player;
-let playerTurnedRight = true;
+let playerHealth = 3;
+let playerHealthText;
 let cursors;
 let points;
 let neededScore = 1;
 let currentScore = 0;
+let scoreText;
 let particles;
+let demons;
 
 function create() {
   // WORLD
@@ -62,7 +65,31 @@ function create() {
     const x = i * 25.6 - 32;
     ground.create(x, 480, "ground").setScale(0.2).refreshBody();
   }
+  for (let i = 5; i < 12; i++) {
+    const x = i * 25.6 - 12;
+    ground.create(x, 360, "ground").setScale(0.2).refreshBody();
+  }
+  for (let i = 25; i < 30; i++) {
+    const x = i * 25.6 - 12;
+    ground.create(x, 360, "ground").setScale(0.2).refreshBody();
+  }
+  for (let i = 18; i < 24; i++) {
+    const x = i * 25.6 - 12;
+    ground.create(x, 240, "ground").setScale(0.2).refreshBody();
+  }
   //WORLD
+
+  // UI
+  scoreText = this.add.text(16, 16, "score: 0", {
+    fontSize: "32px",
+    fill: "#000",
+  });
+
+  playerHealthText = this.add.text(600, 16, "health: " + playerHealth, {
+    fontSize: "32px",
+    fill: "#000",
+  });
+  // UI
 
   // PLAYER
   player = this.physics.add
@@ -103,6 +130,10 @@ function create() {
   });
   // ANIMATIONS
 
+  // PARTICLES
+  particles = this.add.particles("fire");
+  // PARTICLES
+
   // CONTROLS
   cursors = this.input.keyboard.createCursorKeys();
   // CONTROLS
@@ -112,13 +143,14 @@ function create() {
 
   this.physics.add.collider(points, ground);
   this.physics.add.overlap(player, points, collectPoint, null, this);
-
+  spawnPoints(1);
   // POINTS
 
-  // PARTICLES
-  particles = this.add.particles("fire");
-  // PARTICLES
-  spawnPoints(1);
+  // ENEMY
+  demons = this.physics.add.group({ allowGravity: false });
+  this.physics.add.collider(demons, ground);
+  this.physics.add.overlap(player, demons, damagePlayer, null, this);
+  // ENEMY
 }
 
 function update() {
@@ -136,7 +168,7 @@ function update() {
   }
 
   if (cursors.up.isDown && player.body.touching.down) {
-    player.setVelocityY(-420);
+    player.setVelocityY(-470);
   }
 
   if (!player.body.touching.down) {
@@ -149,20 +181,23 @@ function collectPoint(player, point) {
   emitter.stop();
   point.destroy();
   currentScore++;
+  scoreText.setText("score: " + currentScore);
   if (points.countActive(true) === 0) {
-    spawnPoints(neededScore);
+    spawnPoints(neededScore <= 64 ? neededScore : 64);
     neededScore *= 2;
+    spawnDemon();
   }
 }
 
 function spawnPoints(amount) {
-  let x =
-    player.x < 400
-      ? Phaser.Math.Between(400, 800)
-      : Phaser.Math.Between(0, 400);
   let y = player.y < 300 ? 520 : 30;
+  let x;
 
   for (let i = 0; i < amount; i++) {
+    x =
+      player.x < 400
+        ? Phaser.Math.Between(400, 800)
+        : Phaser.Math.Between(0, 400);
     let point = points.create(x, y, "point").setScale(0.5).refreshBody();
     point.setBounce(1);
     point.setCollideWorldBounds(true);
@@ -173,12 +208,50 @@ function spawnPoints(amount) {
     point.body.setGravityY(0);
 
     let emitter = particles.createEmitter({
-      speed: 20,
+      speed: 5,
+      alpha: { start: 1, end: 0 },
       scale: { start: 0.5, end: 0 },
       blendMode: "ADD",
-      tint: { start: 0xff945e, end: 0xff945e },
+      tint: { start: 0x99e550, end: 0x99e550 },
+      frequency: 110,
     });
     emitter.startFollow(point);
     point.setData({ emitter: emitter });
   }
+}
+
+function spawnDemon() {
+  let y = player.y < 300 ? 520 : 30;
+  let x =
+    player.x < 400
+      ? Phaser.Math.Between(400, 800)
+      : Phaser.Math.Between(0, 400);
+  let demon = demons.create(x, y, "point").setScale(0.6).refreshBody();
+  demon.setTint(0xffffff);
+  demon.tint = 0xffffff;
+  demon.setBounce(1);
+  demon.setCollideWorldBounds(true);
+  demon.setVelocity(
+    Phaser.Math.Between(-200, 200),
+    Phaser.Math.Between(-200, 200)
+  );
+
+  let emitter = particles.createEmitter({
+    speed: 10,
+    alpha: { start: 1, end: 0 },
+    scale: { start: 0.8, end: 0.2 },
+    blendMode: "ADD",
+    tint: { start: 0xffffff, end: 0xffffff },
+    frequency: 110,
+  });
+  emitter.startFollow(demon);
+  demon.setData({ emitter: emitter });
+}
+
+function damagePlayer(player, demon) {
+  playerHealth--;
+  playerHealthText.setText("health: " + playerHealth);
+  let emitter = demon.getData("emitter");
+  emitter.stop();
+  demon.destroy();
 }
