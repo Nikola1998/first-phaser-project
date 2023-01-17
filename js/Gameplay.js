@@ -10,12 +10,12 @@ export default class Gameplay extends Phaser.Scene {
     this.playerHealthText;
     this.cursors;
     this.points;
-    this.currentScore = 0;
+    this.score = 0;
     this.scoreText;
     this.particles;
     this.demons;
     this.demonParticles;
-    this.gameOver = false;
+    this.isDead = false;
     this.enemyCollider;
     this.pointCollider;
   }
@@ -187,7 +187,7 @@ export default class Gameplay extends Phaser.Scene {
   }
 
   update() {
-    if (!this.gameOver) {
+    if (!this.isDead) {
       if (this.cursors.left.isDown) {
         this.player.setVelocityX(-230);
         this.player.flipX = true;
@@ -218,10 +218,10 @@ export default class Gameplay extends Phaser.Scene {
     let emitter = point.getData("emitter");
     emitter.stop();
     point.destroy();
-    this.currentScore++;
-    this.scoreText.setText("score: " + this.currentScore);
+    this.score++;
+    this.scoreText.setText("score: " + this.score);
     if (this.points.countActive(true) === 0) {
-      this.points.spawnPoints(this.currentScore <= 64 ? this.currentScore : 64);
+      this.points.spawnPoints(this.score <= 64 ? this.score : 64);
       this.spawnDemon();
       this.sound.play("doing-good");
     }
@@ -269,12 +269,12 @@ export default class Gameplay extends Phaser.Scene {
       this.sound.stopAll();
       this.sound.play("death");
       this.sound.play("end-game");
-      this.playerDeath();
+      this.gameOver();
     }
   }
 
-  playerDeath() {
-    this.gameOver = true;
+  gameOver() {
+    this.isDead = true;
     this.player.setTint(0xff0000);
     this.player.setVelocityX(0);
     this.player.anims.play("die");

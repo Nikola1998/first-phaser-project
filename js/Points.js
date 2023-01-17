@@ -1,6 +1,6 @@
 export default class Points extends Phaser.Physics.Arcade.Group {
   constructor(world, scene, player, particles) {
-    super(world, scene);
+    super(world, scene, { allowGravity: false });
 
     this.player = player;
     this.particles = particles;
