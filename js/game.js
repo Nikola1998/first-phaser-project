@@ -22,6 +22,7 @@ function preload() {
   this.load.image("ground", "assets/ground.png");
   this.load.image("background", "assets/background.png");
   this.load.image("point", "assets/point.png");
+  this.load.image("demon", "assets/demon.png");
   this.load.spritesheet("chap-idle", "assets/chap-idle.png", {
     frameWidth: 128,
     frameHeight: 128,
@@ -37,6 +38,7 @@ function preload() {
 
   // PARTICLES
   this.load.image("fire", "assets/fire-particle.png");
+  this.load.image("demon-particle", "assets/demon-particle.png");
 }
 
 let ground;
@@ -50,6 +52,8 @@ let currentScore = 0;
 let scoreText;
 let particles;
 let demons;
+let demonParticles;
+let gameOver = false;
 
 function create() {
   // WORLD
@@ -132,6 +136,7 @@ function create() {
 
   // PARTICLES
   particles = this.add.particles("fire");
+  demonParticles = this.add.particles("demon-particle");
   // PARTICLES
 
   // CONTROLS
@@ -154,25 +159,27 @@ function create() {
 }
 
 function update() {
-  if (cursors.left.isDown) {
-    player.setVelocityX(-230);
-    player.flipX = true;
-    player.anims.play("run", true);
-  } else if (cursors.right.isDown) {
-    player.setVelocityX(230);
-    player.flipX = false;
-    player.anims.play("run", true);
-  } else {
-    player.setVelocityX(0);
-    player.anims.play("idle", true);
-  }
+  if (!gameOver) {
+    if (cursors.left.isDown) {
+      player.setVelocityX(-230);
+      player.flipX = true;
+      player.anims.play("run", true);
+    } else if (cursors.right.isDown) {
+      player.setVelocityX(230);
+      player.flipX = false;
+      player.anims.play("run", true);
+    } else {
+      player.setVelocityX(0);
+      player.anims.play("idle", true);
+    }
 
-  if (cursors.up.isDown && player.body.touching.down) {
-    player.setVelocityY(-470);
-  }
+    if (cursors.up.isDown && player.body.touching.down) {
+      player.setVelocityY(-470);
+    }
 
-  if (!player.body.touching.down) {
-    player.anims.play("jump");
+    if (!player.body.touching.down) {
+      player.anims.play("jump");
+    }
   }
 }
 
@@ -226,7 +233,7 @@ function spawnDemon() {
     player.x < 400
       ? Phaser.Math.Between(400, 800)
       : Phaser.Math.Between(0, 400);
-  let demon = demons.create(x, y, "point").setScale(0.6).refreshBody();
+  let demon = demons.create(x, y, "demon").setScale(0.6).refreshBody();
   demon.setTint(0xffffff);
   demon.tint = 0xffffff;
   demon.setBounce(1);
@@ -236,7 +243,7 @@ function spawnDemon() {
     Phaser.Math.Between(-200, 200)
   );
 
-  let emitter = particles.createEmitter({
+  let emitter = demonParticles.createEmitter({
     speed: 10,
     alpha: { start: 1, end: 0 },
     scale: { start: 0.8, end: 0.2 },
@@ -254,4 +261,14 @@ function damagePlayer(player, demon) {
   let emitter = demon.getData("emitter");
   emitter.stop();
   demon.destroy();
+  if (playerHealth === 0) {
+    playerDeath();
+  }
+}
+
+function playerDeath() {
+  gameOver = true;
+  player.setTint(0xff0000);
+  player.setVelocityX(0);
+  player.anims.play("die");
 }
